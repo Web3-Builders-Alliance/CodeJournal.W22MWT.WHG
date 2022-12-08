@@ -49,12 +49,12 @@ pub fn execute(
     _env: Env,
     info: MessageInfo,
     msg: ExecuteMsg, //it's enum we should check every possibility
-) -> Result<Response, ContractError> {
+) ->Result<Response, ContractError> {
     match msg { 
         ExecuteMsg::NewEntry { description, priority } => unimplemented!(),
         ExecuteMsg::UpdateEntry { id, description, status, priority } =>unimplemented!(),
         ExecuteMsg::DeleteEntry { id } => unimplemented!(),
-    }
+    };
     //create a fn for newentry
 
     fn execute_new_entry(
@@ -85,6 +85,35 @@ pub fn execute(
         Ok(Response::new().add_attribute("method", "execute_new_entry").add_attribute("new_entry_id", id.to_string()))
 
     }
+    fn execute_update_entry(
+        deps: DepsMut,
+        info: MessageInfo,
+        id: u64,
+        description: Option<String>,
+        status: Option<Status>,
+        priority: Option<Priority>
+    ) -> Result<Response, ContractError>{
+        let owner = CONFIG.load(deps.storage)?.owner; //check the sender is the owner of the contract
+        if info.sender != owner {
+            return Err(ContractError::Unauthorized {}); //return error
+        }
+        //load entry with mathcing id from List
+        let entry = LIST.load(deps.storage, id)?;
+        
+        // If optional parameters are not 
+        // provided, the function defaults back to the value from the entry loaded.
+        let updated_entry = Entry {
+            id,
+            description: description.unwrap_or(entry.description),
+            status: status.unwrap_or(entry.status),
+            priority: priority.unwrap_or(entry.priority),
+        };
+        // saves the updated entry to the `LIST` with the matching `id` and returns a `Response` 
+        // with the relevant attributes.
+        LIST.save(deps.storage, id, &updated_entry)?;
+        Ok(Response::new().add_attribute("method", "execute_update_entry")
+                        .add_attribute("updated_entry_id", id.to_string()))
+        }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

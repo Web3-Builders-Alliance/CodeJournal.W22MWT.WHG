@@ -1,6 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::state::{Priority, Status};
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {
@@ -15,13 +17,13 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     NewEntry{ //add new Entry to do list
         description: String,
-        priority: Option<String>,
+        priority: Option<Priority>,
     },
     UpdateEntry{ //update an exist entry
         id: u64,
         description: Option<String>,
-        status: Option<String>,
-        priority: Option<String>,
+        status: Option<Status>,
+        priority: Option<Priority>,
     }, 
     DeleteEntry{ //delete an exist entry 
         id: u64,
