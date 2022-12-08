@@ -11,8 +11,21 @@ pub struct InstantiateMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
+//the owner should able to modify the list 
 pub enum ExecuteMsg {
-    CustomMsg { val: String },
+    NewEntry{ //add new Entry to do list
+        description: String,
+        priority: Option<String>,
+    },
+    UpdateEntry{ //update an exist entry
+        id: u64,
+        description: Option<String>,
+        status: Option<String>,
+        priority: Option<String>,
+    }, 
+    DeleteEntry{ //delete an exist entry 
+        id: u64,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
