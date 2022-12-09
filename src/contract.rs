@@ -28,7 +28,10 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> { //this will return responde or Error
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?; 
     //owner was optional so if the instantieat msg contains an owner address, this is validate and use it, otherwise the owner is the address that instatietes the contract
-    let owner = msg.owner.and_then(|addr_string|deps.api.addr_validate(addr_string.as_str()).ok()).unwrap_or(info.sender);
+    let owner = msg
+        .owner
+        .and_then(|addr_string|deps.api.addr_validate(addr_string.as_str()).ok())
+        .unwrap_or(info.sender);
 
     let config = Config { 
         owner: owner.clone(),
@@ -51,10 +54,11 @@ pub fn execute(
     msg: ExecuteMsg, //it's enum we should check every possibility
 ) ->Result<Response, ContractError> {
     match msg { 
-        ExecuteMsg::NewEntry { description, priority } => unimplemented!(),
-        ExecuteMsg::UpdateEntry { id, description, status, priority } =>unimplemented!(),
-        ExecuteMsg::DeleteEntry { id } => unimplemented!(),
-    };
+        ExecuteMsg::NewEntry { description, priority } => execute_new_entry(deps, info, description, priority),
+        ExecuteMsg::UpdateEntry { id, description, status, priority } => execute_update_entry(deps, info, id, description, status, priority),
+        ExecuteMsg::DeleteEntry { id } => execute_delete_entry(deps, info, id),
+    }
+}
     //create a fn for newentry
 
     fn execute_new_entry(
@@ -81,10 +85,14 @@ pub fn execute(
         
         };
         //save in the List with matching id and return Responde with the attribute
-        LIST.save(deps.storage, id, &new_entry);
-        Ok(Response::new().add_attribute("method", "execute_new_entry").add_attribute("new_entry_id", id.to_string()))
+        LIST.save(deps.storage, id, &new_entry)?;
+        
+        Ok(Response::new()
+            .add_attribute("method", "execute_new_entry")
+            .add_attribute("new_entry_id", id.to_string()))
 
     }
+
     fn execute_update_entry(
         deps: DepsMut,
         info: MessageInfo,
@@ -111,10 +119,26 @@ pub fn execute(
         // saves the updated entry to the `LIST` with the matching `id` and returns a `Response` 
         // with the relevant attributes.
         LIST.save(deps.storage, id, &updated_entry)?;
-        Ok(Response::new().add_attribute("method", "execute_update_entry")
-                        .add_attribute("updated_entry_id", id.to_string()))
+        Ok(Response::new()
+            .add_attribute("method", "execute_update_entry")
+            .add_attribute("updated_entry_id", id.to_string()))
+    }
+
+    fn execute_delete_entry(
+        deps: DepsMut,
+        info: MessageInfo,
+        id: u64,
+    ) -> Result<Response, ContractError>{
+        let owner = CONFIG.load(deps.storage)?.owner; //check the sender is the owner of the contrcat
+        if info.sender != owner {
+            return Err(ContractError::Unauthorized {  }); // if not the owner, return error
         }
-}
+        //we can remove the entry
+        LIST.remove(deps.storage, id);  //remove entry with the matching id
+        //returns a response with the relevant attributes
+        Ok(Response::new().add_attribute("method", "execute_delete_entry").add_attribute("deleted_entry_id", id.to_string()))
+    }
+
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
