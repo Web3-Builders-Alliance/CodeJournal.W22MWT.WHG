@@ -145,18 +145,18 @@ pub fn execute(
 //quering entries or subset of the whole list
 // the query fn matches the received QueryMsg and returns a query responde in byte-array format
 pub fn query(
-    deps: Deps,
+    _deps: Deps,
     _env: Env,
     msg: QueryMsg
 ) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryEntry { id } => unimplemented!(),
-        QueryMsg::QueryList { start_after, limit } => unimplemented!(),
+        QueryMsg::QueryEntry { id :_} => unimplemented!(),
+        QueryMsg::QueryList { start_after:_, limit:_ } => unimplemented!(),
     }
 }
 //create function to query entry
 //will list entry with the matching id
-fn query_entry(
+fn _query_entry(
     deps: Deps,
     id: u64,
 ) -> StdResult<EntryResponse>{ 
@@ -170,7 +170,7 @@ fn query_entry(
 const MAX_LIMIT:u32 = 30;
 const DEFAULT_LIMIT:u32 = 10;
 
-fn query_list(
+fn _query_list(
     deps: Deps, 
     start_after:Option<u64>, //it defines the subset of the list in order to limit the numberof entries returned
     limit: Option<u32>,

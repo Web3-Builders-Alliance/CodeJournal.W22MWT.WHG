@@ -28,7 +28,7 @@ impl CwTemplateContract {
     }
 
     /// Get Custom
-    pub fn custom_query<Q, T, CQ>(&self, querier: &Q, val: String) -> StdResult<EntryResponse>  //changed EntryResponse
+    pub fn custom_query<Q, T, CQ>(&self, querier: &Q, _val: String) -> StdResult<EntryResponse>  //changed EntryResponse
     where
         Q: Querier,
         T: Into<String>,

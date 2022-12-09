@@ -1,5 +1,4 @@
 //storing contract data 
-use std::process::ExitStatus;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
