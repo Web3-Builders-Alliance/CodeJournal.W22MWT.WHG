@@ -7,7 +7,7 @@ use cw2::set_contract_version;
 
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, EntryResponse};
 use crate::state::{Config, CONFIG, ENTRY_SEQ, Entry, Priority, LIST, Status}; //import from state.rs 
 use std::ops::Add; //import and use when we create a new Entry 
 
@@ -141,8 +141,28 @@ pub fn execute(
 
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
-    unimplemented!()
+//quering entries or subset of the whole list
+// the query fn matches the received QueryMsg and returns a query responde in byte-array format
+pub fn query(
+    deps: Deps,
+    _env: Env,
+    msg: QueryMsg
+) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::QueryEntry { id } => unimplemented!(),
+        QueryMsg::QueryList { start_after, limit } => unimplemented!(),
+    }
+}
+//create function to query entry
+//will list entry with the matching id
+fn query_entry(
+    deps: Deps,
+    id: u64,
+) -> StdResult<EntryResponse>{ 
+    let entry = LIST.load(deps.storage, id)?; //load the entry with the id
+
+    //it will return  EntryResponse with the attributes of the loaded entry 
+    Ok(EntryResponse { id: entry.id, description: entry.description, status: entry.status, priority: entry.priority })
 }
 
 #[cfg(test)]
