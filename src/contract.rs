@@ -2,12 +2,13 @@
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Order};  //add Order we use it in query list fn
 use cw2::set_contract_version;
+use cw_storage_plus::Bound; //import Bound and use query list fn
 
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, EntryResponse};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, EntryResponse, ListResponse};
 use crate::state::{Config, CONFIG, ENTRY_SEQ, Entry, Priority, LIST, Status}; //import from state.rs 
 use std::ops::Add; //import and use when we create a new Entry 
 
@@ -163,6 +164,29 @@ fn query_entry(
 
     //it will return  EntryResponse with the attributes of the loaded entry 
     Ok(EntryResponse { id: entry.id, description: entry.description, status: entry.status, priority: entry.priority })
+}
+//will query the whole list 
+//add a limit for the custom range query , limits for pagination
+const MAX_LIMIT:u32 = 30;
+const DEFAULT_LIMIT:u32 = 10;
+
+fn query_list(
+    deps: Deps, 
+    start_after:Option<u64>, //it defines the subset of the list in order to limit the numberof entries returned
+    limit: Option<u32>,
+)->StdResult<ListResponse>{
+    let start = start_after.map(Bound::exclusive);  //start_after serves as the lower index bound for the function
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize; //determins the max number of entries to be returned
+
+    let entries:StdResult<Vec<_>> = LIST
+        .range(deps.storage, start, None, Order::Ascending) //outputs the resultas a vector of(id, Entry) tuples
+        .take(limit)                                                           //outputs the resultas a vector of(id, Entry) tuples
+        .collect();                                                                                           //outputs the resultas a vector of(id, Entry) tuples
+    
+    let result = ListResponse {
+        entries: entries?.into_iter().map(|l|l.1.into()).collect(), //this will be returned as query response
+    };
+    Ok(result)
 }
 
 #[cfg(test)]
